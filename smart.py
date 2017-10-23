@@ -1,6 +1,10 @@
 from pySMART import Device
 from pySMART import DeviceList
 from pySMART.utils import smartctl_type
+import smtplib
+import email.message
+import sys
+import os
 
 def attributes_to_string(dev):
     attributes_text = ""
@@ -33,27 +37,48 @@ def selftests_to_string(dev):
         selftests_text += "No self-tests have been logged for this device.\n"
     return selftests_text
     
-def print_to_log(dev):
+def get_SMART_summary(dev):
     summary_text = ""
     if(not dev.supports_smart):
-        summary_text += "O dispositivo %s nao possui SMART \n" % dev.__str__() 
-        return
+        print("O dispositivo %s nao possui SMART \n" % dev.__str__())
+        return None
+    summary_text += "Dispositivo: %s\n\n" % dev.__str__()
+    summary_text += "Avaliacao: %s\n\n" % dev.assessment
     summary_text += attributes_to_string(dev)
-    summary_text += "Dispositivo: %s\n" % dev.__str__()
-    summary_text += "Avaliacao: %s\n" % dev.assessment
     for i, message in enumerate(dev.messages):
         summary_text += "Mensagem %d: %s\n" %i %message 
-    summary_text += selftests_to_string(dev)
+    summary_text += "\n%s" % selftests_to_string(dev)
     return summary_text
 
-
-def email_summary(summary_text):
-    print("test email")
-
+def send_email(user, password, recipient, subject, body):
+    to = recipient if type(recipient) is list else [recipient]
+    
+    m = email.message.Message()
+    m['From'] = user
+    m['To'] = recipient
+    m['Subject'] = subject
+    m.set_payload(body);
+    message = m.as_string()
+    
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.ehlo()
+        server.starttls()
+        server.login(user, password)
+        server.sendmail(user, to, message)
+        server.close()
+        print 'Email enviado com sucesso'
+    except:
+        print 'Problema ao enviar o email'
 
 devlist = DeviceList()
+if(len(sys.argv) != 4):
+    print('Numero errado de argumentos. Passe como argumento apenas: remetente@email.com'  
+            ' senha_email_remetente destinatario_1@email.com,destinatario_2@email.com...')
+    sys.exit()
 for dev in devlist.devices:
-    summary_text = print_to_log(dev)
-    print(summary_text)
-    email_summary(summary_text)
-
+    summary_text = get_SMART_summary(dev)
+    subject = "Relatorio SMART: " + os.uname()[1] + " / Avaliacao: " + dev.assessment
+    if(summary_text is not None):
+        print(subject + '\n' + summary_text)
+        send_email(sys.argv[1], sys.argv[2] , sys.argv[3], subject, summary_text)
