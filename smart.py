@@ -46,7 +46,7 @@ def get_SMART_summary(dev):
     summary_text += "Avaliacao: %s\n\n" % dev.assessment
     summary_text += attributes_to_string(dev)
     for i, message in enumerate(dev.messages):
-        summary_text += "Mensagem %d: %s\n" %i %message 
+        summary_text += "Mensagem %d: %s\n" % (i, message)
     summary_text += "\n%s" % selftests_to_string(dev)
     return summary_text
 
@@ -67,7 +67,7 @@ def send_email(user, password, recipient, subject, body):
         server.login(user, password)
         server.sendmail(user, to, message)
         server.close()
-        print 'Email enviado com sucesso'
+        print 'Email enviado'
     except:
         print 'Problema ao enviar o email'
 
@@ -78,7 +78,13 @@ if(len(sys.argv) != 4):
     sys.exit()
 for dev in devlist.devices:
     summary_text = get_SMART_summary(dev)
-    subject = "Relatorio SMART: " + os.uname()[1] + " / Avaliacao: " + dev.assessment
+
+    most_important_values = []
+    for i in (5, 187, 197, 198, 188):
+        if(dev.attributes[i] is not None):
+            most_important_values.append(dev.attributes[i].raw)
+    subject = "SMART: [%s] [%s] [%s]" % (dev.assessment, ",".join(most_important_values), os.uname()[1])
+
     if(summary_text is not None):
-        print(subject + '\n' + summary_text)
+        print("%s\n%s" % (subject, summary_text))
         send_email(sys.argv[1], sys.argv[2] , sys.argv[3], subject, summary_text)
