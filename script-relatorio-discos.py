@@ -1,10 +1,11 @@
+import os
+import sys
+import smtplib
+import email.message
+sys.path.append(os.getcwd())
 from pySMART import Device
 from pySMART import DeviceList
 from pySMART.utils import smartctl_type
-import smtplib
-import email.message
-import sys
-import os
 
 def attributes_to_string(dev):
     attributes_text = ""
@@ -39,7 +40,7 @@ def selftests_to_string(dev):
     
 def get_SMART_summary(dev):
     summary_text = ""
-    if(not dev.supports_smart):
+    if(not dev.smart_capable):
         print("O dispositivo %s nao possui SMART \n" % dev.__str__())
         return None
     summary_text += "Dispositivo: %s\n\n" % dev.__str__()
@@ -67,9 +68,9 @@ def send_email(user, password, recipient, subject, body):
         server.login(user, password)
         server.sendmail(user, to, message)
         server.close()
-        print 'Email enviado'
+        print('Email enviado')
     except:
-        print 'Problema ao enviar o email'
+        print('Problema ao enviar o email')
 
 devlist = DeviceList()
 if(len(sys.argv) != 4):
