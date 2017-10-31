@@ -69,8 +69,8 @@ def send_email(user, password, recipient, subject, body):
         server.sendmail(user, to, message)
         server.close()
         print('Email enviado')
-    except:
-        print('Problema ao enviar o email')
+    except Exception as e:
+        print('problema ao enviar o email: '+ str(e))
 
 devlist = DeviceList()
 if(len(sys.argv) != 4):
