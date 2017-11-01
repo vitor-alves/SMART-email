@@ -80,6 +80,10 @@ sender_email = config.get('remetente', 'email')
 sender_pass = config.get('remetente', 'senha')
 receivers = config.get('destinatarios', 'emails')
 
+if(min(len(sender_email), len(sender_pass), len(receivers)) == 0):
+    print('configure o arquivo config.ini')
+    sys.exit()
+
 for dev in devlist.devices:
     summary_text = get_SMART_summary(dev)
 
