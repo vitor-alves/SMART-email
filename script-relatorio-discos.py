@@ -6,6 +6,7 @@ sys.path.append(os.getcwd())
 from pySMART import Device
 from pySMART import DeviceList
 from pySMART.utils import smartctl_type
+from configparser import ConfigParser
 
 def attributes_to_string(dev):
     attributes_text = ""
@@ -73,10 +74,12 @@ def send_email(user, password, recipient, subject, body):
         print('problema ao enviar o email: '+ str(e))
 
 devlist = DeviceList()
-if(len(sys.argv) != 4):
-    print('Numero errado de argumentos. Passe como argumento apenas: remetente@email.com'  
-            ' senha_email_remetente destinatario_1@email.com,destinatario_2@email.com...')
-    sys.exit()
+config = ConfigParser()
+config.read("config.ini")
+sender_email = config.get('remetente', 'email')
+sender_pass = config.get('remetente', 'senha')
+receivers = config.get('destinatarios', 'emails')
+
 for dev in devlist.devices:
     summary_text = get_SMART_summary(dev)
 
@@ -88,4 +91,4 @@ for dev in devlist.devices:
 
     if(summary_text is not None):
         print("%s\n%s" % (subject, summary_text))
-        send_email(sys.argv[1], sys.argv[2] , sys.argv[3], subject, summary_text)
+        send_email(sender_email, sender_pass, receivers, subject, summary_text)
