@@ -2,4 +2,4 @@
 email=
 senha=
 [destinatarios]
-emails=
+emails=                         #separados por virgula
