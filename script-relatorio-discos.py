@@ -2,7 +2,8 @@ import os
 import sys
 import smtplib
 import email.message
-sys.path.append(os.getcwd())
+program_folder = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(program_folder)
 from pySMART import Device
 from pySMART import DeviceList
 from pySMART.utils import smartctl_type
@@ -75,7 +76,7 @@ def send_email(user, password, recipient, subject, body):
 
 devlist = DeviceList()
 config = ConfigParser()
-config.read("config.ini")
+config.read(program_folder + "/config.ini")
 sender_email = config.get('remetente', 'email')
 sender_pass = config.get('remetente', 'senha')
 receivers = config.get('destinatarios', 'emails')
@@ -85,6 +86,9 @@ if(min(len(sender_email), len(sender_pass), len(receivers)) == 0):
     sys.exit()
 
 for dev in devlist.devices:
+    if(dev.assessment == 'PASS'):
+        continue
+
     summary_text = get_SMART_summary(dev)
 
     most_important_values = []
